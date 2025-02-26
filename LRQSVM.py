@@ -1,3 +1,4 @@
+
 import time
 import pennylane as qml
 import numpy as np
@@ -10,18 +11,22 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
-    classification_report, accuracy_score, precision_score, recall_score, 
+    classification_report, accuracy_score, precision_score, recall_score,
     f1_score, confusion_matrix, roc_curve, auc
 )
 from sklearn.svm import SVC
 from imblearn.under_sampling import RandomUnderSampler
 
 # Load dataset
-data = pd.read_csv('/content/creditcard.csv')
+data = pd.read_csv('/content/drive/MyDrive/creditcard.csv')
+
+
 
 # Define feature matrix (X) and target variable (y)
 data = data.dropna(subset=['Class'])
-X = data.drop('Class', axis=1)  # Use all 30 features
+X = data.drop(['Class', 'Time'], axis=1)  # Exclude 'Time'
+selected_features = X.columns[:10]  # Select the first 10 numerical features
+X = X[selected_features]  # Keep only 10 features
 y = data['Class']
 
 # Standardize the features
@@ -36,7 +41,7 @@ X_resampled, y_resampled = rus.fit_resample(X_scaled, y)
 X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42, stratify=y_resampled)
 
 # Define Quantum Device
-dev = qml.device("lightning.qubit", wires=30)  # Match number of features
+dev = qml.device("lightning.qubit", wires=10)  # Match number of features
 
 # Quantum Kernel Function
 def quantum_kernel(inputs1, inputs2):
@@ -50,16 +55,17 @@ def quantum_kernel(inputs1, inputs2):
     return probs[0]
 
 # Compute Quantum Kernel Matrix in Batches
+def compute_batch(start_idx, end_idx, X_data1, X_data2):
+    return np.array([[quantum_kernel(X_data1[i], X_data2[j]) for j in range(len(X_data2))]
+                     for i in range(start_idx, end_idx)])
+
 def compute_kernel_matrix_parallel(X_data1, X_data2, batch_size=50):
     total_rows = len(X_data1)
     kernel_matrix = np.zeros((total_rows, len(X_data2)))
 
-    def compute_batch(start_idx, end_idx):
-        return np.array([[quantum_kernel(X_data1[i], X_data2[j]) for j in range(len(X_data2))]
-                         for i in range(start_idx, end_idx)])
-
     with multiprocessing.Pool() as pool:
-        results = pool.starmap(compute_batch, [(i, min(i + batch_size, total_rows)) for i in range(0, total_rows, batch_size)])
+        results = pool.starmap(compute_batch, [(i, min(i + batch_size, total_rows), X_data1, X_data2)
+                                               for i in range(0, total_rows, batch_size)])
 
     return np.vstack(results)
 
@@ -94,7 +100,7 @@ def evaluate_model(y_true, y_pred, model_name):
     f1 = f1_score(y_true, y_pred)
     specificity = recall_score(y_true, y_pred, pos_label=0)
     effort_score = (precision + recall) / 2  # Custom metric
-    
+
     print(f"\n📊 {model_name} Performance:")
     print(f"Accuracy: {accuracy:.4f}")
     print(f"Precision: {precision:.4f}")
