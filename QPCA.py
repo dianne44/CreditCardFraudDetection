@@ -118,7 +118,7 @@ sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
             yticklabels=["No Fraud (0)", "Fraud (1)"])
 plt.xlabel("Predicted")
 plt.ylabel("Actual")
-plt.title("🔍 Confusion Matrix for K-NN Model (QPCA)")
+plt.title("🔍 Confusion Matrix for QPCA")
 plt.show()
 
 # Step 12: Plot Learning Rate vs Evaluation Metrics
