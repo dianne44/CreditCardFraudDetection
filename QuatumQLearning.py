@@ -32,12 +32,12 @@ dev = qml.device("default.qubit", wires=num_qubits)
 def quantum_q_value(state, action, weights):
     """Quantum Q-value estimation"""
     qml.AngleEmbedding(state, wires=range(num_qubits))  # Encode state into quantum circuit
-    
+
     # Ensure weights are 2D (1 layer, num_qubits)
     weights = np.reshape(weights, (1, num_qubits))
 
     qml.templates.BasicEntanglerLayers(weights, wires=range(num_qubits))  # Fix weight issue
-    
+
     return qml.expval(qml.PauliZ(0))  # Q-value estimate
 
 # Quantum Q-Learning Class
@@ -98,7 +98,7 @@ train_agent(features, labels, episodes=1000)
 # Evaluate Model
 def evaluate_agent(features, labels):
     y_true, y_pred = [], []
-    
+
     for state, true_label in zip(features, labels):
         action = agent.choose_action(state)
         y_true.append(true_label)
@@ -108,7 +108,7 @@ def evaluate_agent(features, labels):
     precision = precision_score(y_true, y_pred)
     recall = recall_score(y_true, y_pred)  # Sensitivity
     f1 = f1_score(y_true, y_pred)
-    
+
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
     specificity = tn / (tn + fp)  # Specificity calculation
 
