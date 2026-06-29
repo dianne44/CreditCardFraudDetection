@@ -1,0 +1,6 @@
+{
+  "name": "Credit Card Fraud Detector",
+  "description": "An interactive hybrid XGBoost-Quantum Neural Network (XGB-QNN) credit card fraud detection system with real-time quantum circuit simulation and AI-powered decision explainability.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
